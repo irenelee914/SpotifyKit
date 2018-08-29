@@ -111,6 +111,9 @@ fileprivate enum SpotifyScope: String {
     case readEmail     = "user-read-email"
     case libraryModify = "user-library-modify"
     case libraryRead   = "user-library-read"
+    case readCurrentlyPlaying = "user-read-currently-playing"
+    case userModifyPlaybackState = "user-modify-playback-state"
+    case readPlaybackState = "user-read-playback-state"
     
     /**
      Creates a string to pass as parameter value
@@ -445,7 +448,7 @@ public class SpotifyManager {
      and completes token saving.
      - parameter url: the URL with code sent by Spotify after authentication success
      */
-    public func saveToken(from url: URL) {
+    public func saveToken(from url: URL, completion: @escaping (_ success: Bool) -> Void) {
         if  let urlComponents = URLComponents(string: url.absoluteString),
             let queryItems    = urlComponents.queryItems {
             
@@ -454,7 +457,12 @@ public class SpotifyManager {
             
             // Send code to SpotifyKit
             if let authorizationCode = code {
-                saveToken(from: authorizationCode)
+                
+                saveToken(from: authorizationCode) {_ in
+                    completion(true)
+                }
+
+                
             }
         }
     }
@@ -463,7 +471,7 @@ public class SpotifyManager {
      Retrieves the token from the authorization code and saves it locally
      - parameter authorizationCode: the code received from Spotify redirected uri
      */
-    public func saveToken(from authorizationCode: String) {
+    public func saveToken(from authorizationCode: String, completion: @escaping (_ success: Bool) -> Void) {
         guard let application = application else { return }
         
         URLSession.shared.request(SpotifyQuery.token,
@@ -482,11 +490,16 @@ public class SpotifyManager {
                     case .preference:
                         token.writeToKeychain()
                     }
+                    completion(true)
                 }
             }
         }
-        
-        
+
+    }
+    
+    
+    public func getAccessToken()->String{
+        return (token?.accessToken)!
     }
     
     /**
@@ -694,8 +707,8 @@ public class SpotifyManager {
     private func authorizationParameters(for application: SpotifyDeveloperApplication) -> HTTPRequestParameters {
         return [SpotifyParameter.clientId: application.clientId,
                 SpotifyParameter.responseType: SpotifyAuthorizationResponseType.code.rawValue,
-                SpotifyParameter.redirectUri: application.redirectUri,
-                SpotifyParameter.scope: SpotifyScope.string(with: [.readPrivate, .readEmail, .libraryModify, .libraryRead])]
+                SpotifyParameter.redirectUri: application.redirectsUri,
+                SpotifyParameter.scope: SpotifyScope.string(with: [.readPrivate, .readEmail, .libraryModify, .libraryRead, .readCurrentlyPlaying, .userModifyPlaybackState, .readPlaybackState])]
     }
     
     /**
