@@ -708,7 +708,7 @@ public class SpotifyManager {
     private func authorizationParameters(for application: SpotifyDeveloperApplication) -> HTTPRequestParameters {
         return [SpotifyParameter.clientId: application.clientId,
                 SpotifyParameter.responseType: SpotifyAuthorizationResponseType.code.rawValue,
-                SpotifyParameter.redirectUri: application.redirectsUri,
+                SpotifyParameter.redirectUri: application.redirectUri,
                 SpotifyParameter.scope: SpotifyScope.string(with: [.readPrivate, .readEmail, .libraryModify, .libraryRead, .readCurrentlyPlaying, .userModifyPlaybackState, .readPlaybackState, .readRecentlyPlayed])]
     }
     
